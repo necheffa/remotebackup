@@ -74,7 +74,7 @@ func (rb *RemoteBackup) BackupHost(host *data.Host) error {
 
 	// TODO: Make a factory to support other connection types based on user config.
 	//       Also consider having this be a method on the Host object.
-	conn := data.NewSshConnection("myhost", "myname", rb.conf)
+	conn := data.NewSshConnection(host.Name, rb.conf.User, rb.conf)
 
 	for _, vol := range host.Volumes {
 		snap, err := data.NewSnapshot(rb.conf, conn, host, &vol)

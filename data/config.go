@@ -22,6 +22,7 @@ type Host struct {
 type Configuration struct {
 	PasswdFile string
 	Mounts     string
+	User       string
 	Hosts      []Host
 	Dryrun     bool
 	Version    bool
@@ -30,6 +31,7 @@ type Configuration struct {
 type fileConfiguration struct {
 	PasswdFile string
 	Mounts     string
+	User       string
 	Hosts      []Host
 }
 
@@ -69,6 +71,7 @@ func NewConfiguration() (*Configuration, error) {
 	config.Mounts = v.Get("mounts").(string)
 	config.Dryrun = v.Get("dry-run").(bool)
 	config.Version = v.Get("version").(bool)
+	config.User = v.Get("user").(string)
 
 	return config, nil
 }

@@ -1,5 +1,7 @@
 PasswdFile = "/path/to/passwd.file"
 
+User = "bkupuser"
+
 [[hosts]]
 name = "foo.example.com"
 [[hosts.volumes]]
@@ -19,3 +21,8 @@ name = "bar.example.com"
 name = "vg0-lvol2"
 type = "btrfs"
 location = "/"
+[[hosts.volumes]]
+name = "vg0-lvol3"
+type = "lvm"
+filesystem = "xfs"
+location = "/home"
