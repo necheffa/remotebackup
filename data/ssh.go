@@ -37,7 +37,10 @@ func (sc *SshConnection) Bind(mountCmd, remoteMount, localMount string) error {
 		}
 	}
 
-	sshCmd := "ssh " + sc.user + "@" + sc.host + " " + mountCmd
+	// TODO: Kinda gross. Doesn't really handle if remoteMount exists and is not a directory.
+	createMntPoint := "if [ ! -f " + remoteMount + " ]; then mkdir -p " + remoteMount + " && chmod 0700 " + remoteMount + " fi;"
+
+	sshCmd := "ssh " + sc.user + "@" + sc.host + " " + createMntPoint + " " + mountCmd
 	if sc.conf.Dryrun {
 		fmt.Println(sshCmd)
 	} else {

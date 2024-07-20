@@ -9,12 +9,11 @@ import (
 )
 
 type LvmSnapshot struct {
-	host       *Host
-	volume     *Volume
-	conf       *Configuration
-	conn       Connection
-	name       string
-	mountPoint string
+	host   *Host
+	volume *Volume
+	conf   *Configuration
+	conn   Connection
+	name   string
 }
 
 func NewLvmSnapshot(c *Configuration, conn Connection, h *Host, v *Volume) (*LvmSnapshot, error) {
@@ -29,11 +28,11 @@ func NewLvmSnapshot(c *Configuration, conn Connection, h *Host, v *Volume) (*Lvm
 }
 
 func (l *LvmSnapshot) remoteMountPoint() string {
-	return path.Join(l.conf.Mounts, l.name)
+	return path.Join(l.conf.Mounts, l.volume.Name)
 }
 
 func (l *LvmSnapshot) localMountPoint() string {
-	return l.mountPoint
+	return path.Join(l.conf.Mounts, l.host.Name, l.volume.Name)
 }
 
 func (l *LvmSnapshot) Create() error {
@@ -59,16 +58,11 @@ func (l *LvmSnapshot) Destroy() error {
 }
 
 func (l *LvmSnapshot) Mount() error {
-	// TODO: the mountpoint namespace is already figured out, I just need to design it into the global config.
-	// Here, we'll just need to decide what the mountpoint will be underneith that namespace.
-	// It needs to be static from backup to backup so that restic can version/rotate the files correctly.
-
-	l.mountPoint = path.Join(l.conf.Mounts, l.host.Name, l.name)
-	if _, err := os.Stat(l.mountPoint); os.IsNotExist(err) {
+	if _, err := os.Stat(l.localMountPoint()); os.IsNotExist(err) {
 		if l.conf.Dryrun {
-			fmt.Println("Creating mountpoint: ", l.mountPoint)
+			fmt.Println("Creating mountpoint: ", l.localMountPoint())
 		} else {
-			err = os.Mkdir(l.mountPoint, 0700)
+			err = os.Mkdir(l.localMountPoint(), 0700)
 			if err != nil && !os.IsExist(err) {
 				return errors.Join(ErrUnableToCreateMountPoint, err)
 			}
@@ -82,12 +76,12 @@ func (l *LvmSnapshot) Mount() error {
 	default:
 		return ErrUnsupportedFileSystem
 	case "ext4":
-		mountCmd = "mount " + mountSrc + " " + l.mountPoint
+		mountCmd = "mount " + mountSrc + " " + l.remoteMountPoint()
 	case "xfs":
-		mountCmd = "mount -o ro,norecovery " + mountSrc + " " + l.mountPoint
+		mountCmd = "mount -o ro,norecovery " + mountSrc + " " + l.remoteMountPoint()
 	}
 
-	err := l.conn.Bind(mountCmd, mountSrc, l.mountPoint)
+	err := l.conn.Bind(mountCmd, l.remoteMountPoint(), l.localMountPoint())
 	if err != nil {
 		return err
 	}
