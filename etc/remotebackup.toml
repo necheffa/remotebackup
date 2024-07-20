@@ -1,0 +1,21 @@
+PasswdFile = "/path/to/passwd.file"
+
+[[hosts]]
+name = "foo.example.com"
+[[hosts.volumes]]
+name = "vg0-lvol0"
+type = "lvm"
+filesystem = "ext4"
+location = "/home"
+[[hosts.volumes]]
+name = "vg0-lvol1"
+type = "lvm"
+filesystem ="xfs"
+location = "/var"
+
+[[hosts]]
+name = "bar.example.com"
+[[hosts.volumes]]
+name = "vg0-lvol2"
+type = "btrfs"
+location = "/"

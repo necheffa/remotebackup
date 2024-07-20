@@ -1,0 +1,4 @@
+XXXX-YY-ZZ Alexander Necheff <alex@necheff.net>
+    * Set version to 2.0.0, using semantic versioning.
+    * Complete rewrite and integration of the remote_backup, backup_lvm, and backup_btrfs shell scripts.
+    * Features above and beyond 1.x include support for XFS on LVM.
