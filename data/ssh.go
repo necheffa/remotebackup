@@ -87,7 +87,7 @@ func (sc *SshConnection) Unbind(remoteMount, localMount string) error {
 		}
 	}
 
-	remoteMountCmd := "umount " + remoteMount
+	remoteMountCmd := "ssh " + sc.user + "@" + sc.host + " umount " + remoteMount
 	if sc.conf.Dryrun {
 		fmt.Println(remoteMountCmd)
 	} else {
