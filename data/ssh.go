@@ -7,6 +7,11 @@ import (
 	"github.com/bitfield/script"
 )
 
+var (
+	ErrSshConnection = errSshConnection()
+	ErrSshLoadKeys   = errSshLoadKeys()
+)
+
 type SshConnection struct {
 	host       string
 	user       string
@@ -33,7 +38,7 @@ func (sc *SshConnection) Bind(mountCmd, remoteMount, localMount string) error {
 	if !sc.keysLoaded {
 		err := sc.loadKeys()
 		if err != nil {
-			return err
+			return errors.Join(ErrSshLoadKeys, err)
 		}
 	}
 
@@ -45,11 +50,11 @@ func (sc *SshConnection) Bind(mountCmd, remoteMount, localMount string) error {
 		fmt.Println(sshCmd)
 	} else {
 		p := script.Exec(sshCmd)
-		if p.ExitStatus() != 0 {
-			//TODO: figure out messaging
-			//return errors.New("SshConnection: ", p.Stdout())
-			return errors.New("sshconnection")
+		msg, err := p.String()
+		if err != nil {
+			return errors.Join(ErrSshConnection, ErrBindFailure, err)
 		}
+		fmt.Println(msg)
 	}
 
 	sshFsCmd := "sshfs " + sc.user + "@" + sc.host + ":" + remoteMount + " " + localMount
@@ -57,11 +62,11 @@ func (sc *SshConnection) Bind(mountCmd, remoteMount, localMount string) error {
 		fmt.Println(sshFsCmd)
 	} else {
 		p := script.Exec(sshFsCmd)
-		if p.ExitStatus() != 0 {
-			//TODO: figure out messaging
-			//return errors.New("SshConnection: ", p.Stdout())
-			return errors.New("sshconnection")
+		msg, err := p.String()
+		if err != nil {
+			return errors.Join(ErrSshConnection, ErrBindFailure, err)
 		}
+		fmt.Println(msg)
 	}
 
 	return nil
@@ -71,7 +76,7 @@ func (sc *SshConnection) Unbind(remoteMount, localMount string) error {
 	if !sc.keysLoaded {
 		err := sc.loadKeys()
 		if err != nil {
-			return err
+			return errors.Join(ErrSshLoadKeys, err)
 		}
 	}
 
@@ -80,11 +85,11 @@ func (sc *SshConnection) Unbind(remoteMount, localMount string) error {
 		fmt.Println(localMountCmd)
 	} else {
 		p := script.Exec(localMountCmd)
-		if p.ExitStatus() != 0 {
-			//TODO: figure out messaging
-			//return errors.New("SshConnection: ", p.Stdout())
-			return errors.New("sshconnection")
+		msg, err := p.String()
+		if err != nil {
+			return errors.Join(ErrSshConnection, ErrUnbindFailure, err)
 		}
+		fmt.Println(msg)
 	}
 
 	remoteMountCmd := "ssh " + sc.user + "@" + sc.host + " umount " + remoteMount
@@ -92,12 +97,20 @@ func (sc *SshConnection) Unbind(remoteMount, localMount string) error {
 		fmt.Println(remoteMountCmd)
 	} else {
 		p := script.Exec(remoteMountCmd)
-		if p.ExitStatus() != 0 {
-			//TODO: figure out messaging
-			//return errors.New("SshConnection: ", p.Stdout())
-			return errors.New("sshconnection")
+		msg, err := p.String()
+		if err != nil {
+			return errors.Join(ErrSshConnection, ErrUnbindFailure, err)
 		}
+		fmt.Println(msg)
 	}
 
 	return nil
+}
+
+func errSshConnection() error {
+	return errors.New("sshconnection")
+}
+
+func errSshLoadKeys() error {
+	return errors.New("loading ssh keys failed")
 }
