@@ -6,6 +6,8 @@ import (
 	"os"
 	"path"
 	"time"
+
+	"github.com/bitfield/script"
 )
 
 type LvmSnapshot struct {
@@ -43,6 +45,13 @@ func (l *LvmSnapshot) Create() error {
 	createCmd := "lvcreate -y -L5G -s -pr -n " + l.name + " " + path.Join("/dev/mapper", l.volume.Name)
 	if l.conf.Dryrun {
 		fmt.Println(createCmd)
+	} else {
+		p := script.Exec(createCmd)
+		msg, err := p.String()
+		if err != nil {
+			return err
+		}
+		fmt.Println(msg)
 	}
 
 	return nil
@@ -52,6 +61,13 @@ func (l *LvmSnapshot) Destroy() error {
 	destroyCmd := "lvremove -y " + path.Join("/dev/mapper", l.name)
 	if l.conf.Dryrun {
 		fmt.Println(destroyCmd)
+	} else {
+		p := script.Exec(destroyCmd)
+		msg, err := p.String()
+		if err != nil {
+			return err
+		}
+		fmt.Println(msg)
 	}
 
 	return nil
