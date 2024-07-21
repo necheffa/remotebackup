@@ -75,7 +75,7 @@ func (l *LvmSnapshot) Mount() error {
 	switch l.volume.FileSystem {
 	default:
 		return ErrUnsupportedFileSystem
-	case "ext4":
+	case "ext4", "ext3", "ext2":
 		mountCmd = "mount " + mountSrc + " " + l.remoteMountPoint()
 	case "xfs":
 		mountCmd = "mount -o ro,norecovery " + mountSrc + " " + l.remoteMountPoint()
