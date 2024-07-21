@@ -98,13 +98,49 @@ func (rb *RemoteBackup) BackupHost(host *data.Host) error {
 		}
 	}
 
-	fmt.Println("Calling restic on:", rb.conf.Mounts+"/"+host.Name+"/")
-	p := script.Exec("echo CALLING RESTIC FROM THE SHELL")
-	msg, err := p.String()
+	err := os.Setenv("RESTIC_PASSWORD_FILE", rb.conf.PasswdFile)
 	if err != nil {
-		rb.sugar.Infow("Failed to execute restic", "error", err)
+		rb.sugar.Infow("Failed to set restic password file environment variable", "host", host.Name, "error", err)
+		// TODO: clean up, this is basically fatal.
+	}
+
+	// Use a single repository, rather than per-host, to reap the benifits of deduplication.
+	// A large number of OS files are going to be deuplicated across all hosts.
+	err = os.Setenv("RESTIC_REPOSITORY", rb.conf.Mounts+"/repo/")
+	if err != nil {
+		rb.sugar.Infow("Failed to set restic repository environment variable", "host", host.Name, "error", err)
+		// TODO: cleanup, this is basically fatal.
+	}
+
+	// TODO: make sure the repo doesn't need created/initalized for the first use.
+
+	// TODO: since we are picking up /srv/remote/backup/host.Name off of sshfs, are we effectively downloading
+	// a bunch of files that restic dedup will hash and determine don't need archived?
+	bkupCmd := "restic backup " + rb.conf.Mounts + "/" + host.Name + "/"
+	if rb.conf.Dryrun {
+		fmt.Println(bkupCmd)
 	} else {
-		fmt.Print(msg)
+		p := script.Exec(bkupCmd)
+		msg, err := p.String()
+		if err != nil {
+			rb.sugar.Infow("Failed to execute restic backup", "host", host.Name, "error", err)
+		} else {
+			fmt.Println(msg)
+		}
+	}
+
+	// TODO: allow the user to specify a number of days to keep backups for, default to 14.
+	rotateCmd := "restic forget --host " + host.Name + " -d 14"
+	if rb.conf.Dryrun {
+		fmt.Println(rotateCmd)
+	} else {
+		p := script.Exec(rotateCmd)
+		msg, err := p.String()
+		if err != nil {
+			rb.sugar.Infow("Failed to execute restic forget", "host", host.Name, "error", err)
+		} else {
+			fmt.Println(msg)
+		}
 	}
 
 	for _, snap := range snaps {
