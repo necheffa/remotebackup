@@ -112,7 +112,30 @@ func (rb *RemoteBackup) BackupHost(host *data.Host) error {
 		// TODO: cleanup, this is basically fatal.
 	}
 
-	// TODO: make sure the repo doesn't need created/initalized for the first use.
+	repoPipe := script.IfExists(rb.conf.Mounts + "/repo/config")
+	_, err = repoPipe.String()
+	if err != nil {
+		initCmd := "restic init"
+		if rb.conf.Dryrun {
+			fmt.Println("mkdir -p " + rb.conf.Mounts + "/repo/ && chmod 0700 " + rb.conf.Mounts + "/repo/")
+			fmt.Println(initCmd)
+		} else {
+			err = os.MkdirAll(rb.conf.Mounts+"/repo/", 0700)
+			if err != nil {
+				rb.sugar.Infow("Failed to create restic repo dir", "error", err)
+				// TODO: cleanup, this is basically fatal.
+			}
+
+			p := script.Exec(initCmd)
+			msg, err := p.String()
+			if err != nil {
+				rb.sugar.Infow("Failed to initalize restic repo", "error", err)
+				// TODO: cleanup, this is basically fatal.
+			} else {
+				fmt.Println(msg)
+			}
+		}
+	}
 
 	// TODO: since we are picking up /srv/remote/backup/host.Name off of sshfs, are we effectively downloading
 	// a bunch of files that restic dedup will hash and determine don't need archived?
