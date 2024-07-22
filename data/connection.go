@@ -11,7 +11,7 @@ var (
 
 type Connection interface {
 	Bind(mntCmd, remoteMount, localMount string) error
-	Unbind(remoteMount, localMount string) error
+	Unbind(umntCmd, remoteMount, localMount string) error
 }
 
 func errBindFailure() error {

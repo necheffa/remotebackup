@@ -106,7 +106,8 @@ func (l *LvmSnapshot) Mount() error {
 }
 
 func (l *LvmSnapshot) Unmount() error {
-	return l.conn.Unbind(l.remoteMountPoint(), l.localMountPoint())
+	umountCmd := "umount " + l.remoteMountPoint()
+	return l.conn.Unbind(umountCmd, l.remoteMountPoint(), l.localMountPoint())
 }
 
 func (l *LvmSnapshot) Volume() *Volume {

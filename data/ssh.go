@@ -72,7 +72,7 @@ func (sc *SshConnection) Bind(mountCmd, remoteMount, localMount string) error {
 	return nil
 }
 
-func (sc *SshConnection) Unbind(remoteMount, localMount string) error {
+func (sc *SshConnection) Unbind(umountCmd, remoteMount, localMount string) error {
 	if !sc.keysLoaded {
 		err := sc.loadKeys()
 		if err != nil {
@@ -92,7 +92,7 @@ func (sc *SshConnection) Unbind(remoteMount, localMount string) error {
 		fmt.Println(msg)
 	}
 
-	remoteMountCmd := "ssh " + sc.user + "@" + sc.host + " umount " + remoteMount
+	remoteMountCmd := "ssh " + sc.user + "@" + sc.host + " " + umountCmd
 	if sc.conf.Dryrun {
 		fmt.Println(remoteMountCmd)
 	} else {
