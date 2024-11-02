@@ -11,7 +11,7 @@ vulns:
 
 quality:
 	go vet ./...
-	golangci-lint run --enable godox --enable gomnd --enable gosec --enable errorlint --enable gofmt \
+	golangci-lint run --enable godox --enable mnd --enable gosec --enable errorlint --enable gofmt \
         --enable unconvert --enable ginkgolinter ./...
 
 clean:
